@@ -1,18 +1,44 @@
-// Review page — flashcard player + spaced repetition queue. Steps 6–7.
+import { createClient } from "@/lib/supabase/server";
+import { getCourses, getDecks, getFlashcardsByDeckIds } from "@/lib/db/queries";
+import { ReviewClient } from "./_components/ReviewClient";
+import type { Flashcard } from "@/types";
 
-import { Badge } from "@/components/ui/Badge";
+interface Props {
+  searchParams: Promise<{ courseId?: string }>;
+}
 
-export default function ReviewPage() {
+export default async function ReviewPage({ searchParams }: Props) {
+  const { courseId } = await searchParams;
+  const supabase = await createClient();
+
+  const courses = await getCourses(supabase);
+  const selectedCourseId = courseId ?? "";
+
+  const decks = selectedCourseId
+    ? await getDecks(supabase, selectedCourseId)
+    : [];
+
+  const deckIds = decks.map((d) => d.id);
+  const allFlashcards = await getFlashcardsByDeckIds(supabase, deckIds);
+
+  // Group flashcards by deck_id
+  const flashcardsByDeck = allFlashcards.reduce<Record<string, Flashcard[]>>(
+    (acc, card) => {
+      if (!acc[card.deck_id]) acc[card.deck_id] = [];
+      acc[card.deck_id].push(card);
+      return acc;
+    },
+    {}
+  );
+
   return (
-    <div className="max-w-2xl space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="text-sand-200 text-xl font-semibold">Review</h2>
-        <Badge variant="accent">Steps 6–7</Badge>
-      </div>
-      <p className="text-sand-500 text-sm">
-        Today&apos;s review queue, FlashcardPlayer (Know / Hard / Miss), and
-        spaced repetition scheduler coming in Steps 6–7.
-      </p>
+    <div className="max-w-3xl">
+      <ReviewClient
+        courses={courses}
+        selectedCourseId={selectedCourseId}
+        decks={decks}
+        flashcardsByDeck={flashcardsByDeck}
+      />
     </div>
   );
 }

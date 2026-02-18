@@ -74,13 +74,15 @@ export async function getConcept(
 
 export async function getCaptures(
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
+  limit = 20
 ): Promise<Capture[]> {
   const { data, error } = await supabase
     .from("captures")
     .select("*")
     .eq("course_id", courseId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return (data ?? []) as Capture[];
 }
@@ -110,6 +112,21 @@ export async function getFlashcardsByDeck(
     .from("flashcards")
     .select("*")
     .eq("deck_id", deckId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Flashcard[];
+}
+
+/** Returns all flashcards for the given deck IDs in a single query. */
+export async function getFlashcardsByDeckIds(
+  supabase: SupabaseClient,
+  deckIds: string[]
+): Promise<Flashcard[]> {
+  if (deckIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("flashcards")
+    .select("*")
+    .in("deck_id", deckIds)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Flashcard[];
