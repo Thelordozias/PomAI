@@ -1,10 +1,5 @@
-// (app) route group layout — AppShell (Sidebar + Topbar) added in Step 3.
-// For now, just renders children with minimal chrome.
+import { AppShell } from "@/components/layout/AppShell";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-bark-900">
-      {children}
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }
