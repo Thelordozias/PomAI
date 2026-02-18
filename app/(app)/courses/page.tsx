@@ -1,17 +1,14 @@
-// Courses list — full implementation in Step 4.
+import { createClient } from "@/lib/supabase/server";
+import { getCourses } from "@/lib/db/queries";
+import { CourseList } from "./_components/CourseList";
 
-import { Badge } from "@/components/ui/Badge";
+export default async function CoursesPage() {
+  const supabase = await createClient();
+  const courses = await getCourses(supabase);
 
-export default function CoursesPage() {
   return (
-    <div className="max-w-3xl space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="text-sand-200 text-xl font-semibold">Courses</h2>
-        <Badge variant="accent">Step 4</Badge>
-      </div>
-      <p className="text-sand-500 text-sm">
-        Course list, create/edit, and chapter management coming in Step 4.
-      </p>
+    <div className="max-w-4xl">
+      <CourseList courses={courses} />
     </div>
   );
 }
