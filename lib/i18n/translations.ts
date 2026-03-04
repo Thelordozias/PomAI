@@ -311,7 +311,7 @@ const en = {
     aiImportTitle: "Document Import",
     aiImportDesc: "Upload PDFs or text files. Automatically extracted into captures.",
   },
-} as const;
+};
 
 const fr: typeof en = {
   nav: {
