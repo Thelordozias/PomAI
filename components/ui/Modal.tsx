@@ -57,8 +57,8 @@ export function Modal({
       {/* Panel */}
       <div
         className={[
-          "w-full rounded bg-card border border-warm shadow-lift",
-          "flex flex-col gap-0 fade-in",
+          "w-full rounded-xl bg-bark-850 border border-warm shadow-lift",
+          "flex flex-col gap-0 slide-up",
           width,
         ].join(" ")}
       >

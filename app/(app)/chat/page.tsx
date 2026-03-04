@@ -1,18 +1,14 @@
-// Chat (RAG) page — document-grounded Q&A. Step 10 (V2).
+import { createClient } from "@/lib/supabase/server";
+import { getCourses } from "@/lib/db/queries";
+import { ChatClient } from "./_components/ChatClient";
 
-import { Badge } from "@/components/ui/Badge";
+export default async function ChatPage() {
+  const supabase = await createClient();
+  const courses = await getCourses(supabase);
 
-export default function ChatPage() {
   return (
-    <div className="max-w-2xl space-y-4">
-      <div className="flex items-center gap-3">
-        <h2 className="text-sand-200 text-xl font-semibold">Chat</h2>
-        <Badge variant="info">V2 · Step 10</Badge>
-      </div>
-      <p className="text-sand-500 text-sm">
-        RAG chat with citations over your uploaded course documents coming in
-        Step 10. Requires documents to be ingested first (Step 9).
-      </p>
+    <div className="max-w-3xl">
+      <ChatClient courses={courses} />
     </div>
   );
 }

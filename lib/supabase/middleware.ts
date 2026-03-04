@@ -41,16 +41,23 @@ export async function updateSession(request: NextRequest) {
   const isPublic =
     pathname === "/" ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/auth/callback");
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password");
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    const requestedPath = `${pathname}${request.nextUrl.search}`;
+    if (requestedPath.startsWith("/")) {
+      url.searchParams.set("next", requestedPath);
+    }
     return NextResponse.redirect(url);
   }
 
   // If authenticated user visits /login, send them to dashboard
-  if (user && pathname === "/login") {
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

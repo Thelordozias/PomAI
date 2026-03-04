@@ -1,8 +1,19 @@
 "use client";
 
-import { InputHTMLAttributes, TextareaHTMLAttributes, forwardRef } from "react";
+import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, forwardRef } from "react";
 
-/* ─── Text Input ─────────────────────────────────────────────────────── */
+const baseInput = [
+  "w-full rounded-lg px-3 py-2 text-sm",
+  "bg-muted border border-warm",
+  "text-sand-200 placeholder:text-sand-600",
+  "transition-all duration-150",
+  "focus:outline-none focus:border-ember-500 focus:ring-1 focus:ring-ember-500/50 focus:bg-bark-850",
+  "disabled:opacity-40 disabled:cursor-not-allowed",
+].join(" ");
+
+const labelClass = "block text-sand-500 text-xs font-medium mb-1.5";
+
+/* ─── Input ─────────────────────────────────────────────────────────── */
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,43 +24,25 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, className = "", id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
-
     return (
-      <div className="flex flex-col gap-1">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sand-500 text-xs font-medium uppercase tracking-wide"
-          >
-            {label}
-          </label>
-        )}
+      <div className="flex flex-col">
+        {label && <label htmlFor={inputId} className={labelClass}>{label}</label>}
         <input
           ref={ref}
           id={inputId}
           className={[
-            "w-full rounded px-3 py-2 text-sm",
-            "bg-muted border border-warm",
-            "text-sand-200 placeholder:text-sand-600",
-            "transition-colors duration-150",
-            "focus:outline-none focus:border-ember-500 focus:ring-1 focus:ring-ember-500",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            error ? "border-red-600 focus:border-red-500 focus:ring-red-500" : "",
+            baseInput,
+            error ? "border-red-700 focus:border-red-500 focus:ring-red-500/50" : "",
             className,
           ].join(" ")}
           {...props}
         />
-        {hint && !error && (
-          <p className="text-sand-600 text-xs">{hint}</p>
-        )}
-        {error && (
-          <p className="text-red-400 text-xs">{error}</p>
-        )}
+        {hint && !error && <p className="text-sand-600 text-xs mt-1">{hint}</p>}
+        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
     );
   }
 );
-
 Input.displayName = "Input";
 
 /* ─── Textarea ───────────────────────────────────────────────────────── */
@@ -63,49 +56,32 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, hint, className = "", id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
-
     return (
-      <div className="flex flex-col gap-1">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sand-500 text-xs font-medium uppercase tracking-wide"
-          >
-            {label}
-          </label>
-        )}
+      <div className="flex flex-col">
+        {label && <label htmlFor={inputId} className={labelClass}>{label}</label>}
         <textarea
           ref={ref}
           id={inputId}
           rows={4}
           className={[
-            "w-full rounded px-3 py-2 text-sm",
-            "bg-muted border border-warm",
-            "text-sand-200 placeholder:text-sand-600",
-            "resize-y transition-colors duration-150",
-            "focus:outline-none focus:border-ember-500 focus:ring-1 focus:ring-ember-500",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            error ? "border-red-600 focus:border-red-500 focus:ring-red-500" : "",
+            baseInput,
+            "resize-y",
+            error ? "border-red-700 focus:border-red-500 focus:ring-red-500/50" : "",
             className,
           ].join(" ")}
           {...props}
         />
-        {hint && !error && (
-          <p className="text-sand-600 text-xs">{hint}</p>
-        )}
-        {error && (
-          <p className="text-red-400 text-xs">{error}</p>
-        )}
+        {hint && !error && <p className="text-sand-600 text-xs mt-1">{hint}</p>}
+        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
     );
   }
 );
-
 Textarea.displayName = "Textarea";
 
 /* ─── Select ─────────────────────────────────────────────────────────── */
 
-interface SelectProps extends InputHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   children: React.ReactNode;
@@ -114,37 +90,24 @@ interface SelectProps extends InputHTMLAttributes<HTMLSelectElement> {
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, className = "", id, children, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
-
     return (
-      <div className="flex flex-col gap-1">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sand-500 text-xs font-medium uppercase tracking-wide"
-          >
-            {label}
-          </label>
-        )}
+      <div className="flex flex-col">
+        {label && <label htmlFor={inputId} className={labelClass}>{label}</label>}
         <select
           ref={ref}
           id={inputId}
           className={[
-            "w-full rounded px-3 py-2 text-sm",
-            "bg-muted border border-warm",
-            "text-sand-200",
-            "focus:outline-none focus:border-ember-500 focus:ring-1 focus:ring-ember-500",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            error ? "border-red-600" : "",
+            baseInput,
+            error ? "border-red-700" : "",
             className,
           ].join(" ")}
-          {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}
+          {...props}
         >
           {children}
         </select>
-        {error && <p className="text-red-400 text-xs">{error}</p>}
+        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
       </div>
     );
   }
 );
-
 Select.displayName = "Select";

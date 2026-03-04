@@ -1,8 +1,20 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult, Deck, Flashcard, ReviewResult, ConceptProgress } from "@/types";
+
+const DeckSchema = z.object({
+  courseId: z.string().uuid("Cours invalide"),
+  title:    z.string().min(1, "Le titre du deck est requis").max(100, "Titre trop long"),
+});
+
+const FlashcardSchema = z.object({
+  deckId: z.string().uuid("Deck invalide"),
+  front:  z.string().min(1, "La question est requise").max(500, "Question trop longue"),
+  back:   z.string().min(1, "La réponse est requise").max(1000, "Réponse trop longue"),
+});
 
 /* ─── SM-2 scheduler ─────────────────────────────────────────────────── */
 
@@ -37,6 +49,10 @@ export async function createDeck(
   courseId: string,
   title: string
 ): Promise<ActionResult<Deck>> {
+  const parsed = DeckSchema.safeParse({ courseId, title: title.trim() });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+  const cleanTitle = parsed.data.title;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,7 +61,7 @@ export async function createDeck(
 
   const { data, error } = await supabase
     .from("decks")
-    .insert({ user_id: user.id, course_id: courseId, title: title.trim() })
+    .insert({ user_id: user.id, course_id: courseId, title: cleanTitle })
     .select()
     .single();
 
@@ -75,6 +91,11 @@ export async function createFlashcard(
   back: string,
   conceptId?: string
 ): Promise<ActionResult<Flashcard>> {
+  const parsed = FlashcardSchema.safeParse({ deckId, front: front.trim(), back: back.trim() });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+  const cleanFront = parsed.data.front;
+  const cleanBack = parsed.data.back;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -88,8 +109,8 @@ export async function createFlashcard(
       deck_id: deckId,
       concept_id: conceptId ?? null,
       type: "basic",
-      front: front.trim(),
-      back: back.trim(),
+      front: cleanFront,
+      back: cleanBack,
       difficulty: 3,
       source: { kind: "manual" },
     })
@@ -126,6 +147,10 @@ export async function submitReview(
   conceptId: string | null,
   result: ReviewResult
 ): Promise<ActionResult<null>> {
+  if (!flashcardId.trim()) {
+    return { success: false, error: "Flashcard is required" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -160,7 +185,7 @@ export async function submitReview(
       result === "know" ? 10 : result === "hard" ? -2 : -10;
     const newMastery = Math.min(100, Math.max(0, masteryScore + delta));
 
-    await supabase.from("concept_progress").upsert(
+    const { error: progressError } = await supabase.from("concept_progress").upsert(
       {
         user_id: user.id,
         concept_id: conceptId,
@@ -171,7 +196,12 @@ export async function submitReview(
       },
       { onConflict: "user_id,concept_id" }
     );
+
+    if (progressError) {
+      return { success: false, error: progressError.message };
+    }
   }
 
+  revalidatePath("/dashboard");
   return { success: true, data: null };
 }

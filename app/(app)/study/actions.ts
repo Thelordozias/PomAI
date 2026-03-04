@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -8,6 +9,13 @@ import type {
   MathCaptureContent,
   GenericCaptureContent,
 } from "@/types";
+
+const CaptureSchema = z.object({
+  courseId:   z.string().uuid("Course invalide"),
+  mode:       z.enum(["math", "generic"]),
+  confidence: z.number().int().min(0, "Min 0").max(5, "Max 5"),
+  chapterId:  z.string().uuid().optional().or(z.literal("")),
+});
 
 /**
  * Creates a capture and, for math mode, auto-creates or links an existing
@@ -20,6 +28,11 @@ export async function createCapture(
   confidence: number,
   chapterId?: string
 ): Promise<ActionResult<Capture>> {
+  const parsed = CaptureSchema.safeParse({ courseId, mode, confidence, chapterId: chapterId ?? "" });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,7 +56,7 @@ export async function createCapture(
       if (existing) {
         conceptId = (existing as { id: string }).id;
       } else {
-        const { data: newConcept } = await supabase
+        const { data: newConcept, error: conceptError } = await supabase
           .from("concepts")
           .insert({
             user_id: user.id,
@@ -55,6 +68,11 @@ export async function createCapture(
           })
           .select("id")
           .single();
+
+        if (conceptError) {
+          return { success: false, error: conceptError.message };
+        }
+
         conceptId = (newConcept as { id: string } | null)?.id ?? null;
       }
     }
@@ -76,6 +94,7 @@ export async function createCapture(
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/study");
+  revalidatePath("/dashboard");
   return { success: true, data: data as Capture };
 }
 
@@ -94,5 +113,6 @@ export async function deleteCapture(
     .eq("id", captureId);
   if (error) return { success: false, error: error.message };
   revalidatePath("/study");
+  revalidatePath("/dashboard");
   return { success: true, data: null };
 }

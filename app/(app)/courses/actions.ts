@@ -1,8 +1,19 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult, Course, Chapter } from "@/types";
+
+const CourseSchema = z.object({
+  title:       z.string().min(1, "Le titre est requis").max(120, "Titre trop long (120 car. max)"),
+  description: z.string().max(500, "Description trop longue (500 car. max)").optional(),
+});
+
+const ChapterSchema = z.object({
+  courseId: z.string().uuid("Cours invalide"),
+  title:    z.string().min(1, "Le titre du chapitre est requis").max(120, "Titre trop long"),
+});
 
 /* ─── Courses ────────────────────────────────────────────────────────── */
 
@@ -10,6 +21,9 @@ export async function createCourse(
   title: string,
   description: string
 ): Promise<ActionResult<Course>> {
+  const parsed = CourseSchema.safeParse({ title, description });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -34,6 +48,9 @@ export async function updateCourse(
   title: string,
   description: string
 ): Promise<ActionResult<Course>> {
+  const parsed = CourseSchema.safeParse({ title, description });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -77,6 +94,9 @@ export async function createChapter(
   courseId: string,
   title: string
 ): Promise<ActionResult<Chapter>> {
+  const parsed = ChapterSchema.safeParse({ courseId, title });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
@@ -112,6 +132,9 @@ export async function updateChapter(
   courseId: string,
   title: string
 ): Promise<ActionResult<Chapter>> {
+  const parsed = ChapterSchema.safeParse({ courseId, title });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Données invalides" };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Not authenticated" };
