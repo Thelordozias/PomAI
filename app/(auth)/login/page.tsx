@@ -12,7 +12,6 @@ type Mode = "password" | "magic";
 
 function LoginForm() {
   const t = useTranslation();
-  const supabase = createClient();
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
   const next = searchParams.get("next") ?? "/dashboard";
@@ -34,6 +33,7 @@ function LoginForm() {
     setError(null);
     setLoading(true);
 
+    const supabase = createClient();
     if (mode === "password") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {

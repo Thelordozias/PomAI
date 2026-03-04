@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function SignUpPage() {
-  const supabase = createClient();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -32,6 +30,7 @@ export default function SignUpPage() {
     setError(null);
     setLoading(true);
 
+    const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
