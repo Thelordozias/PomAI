@@ -1,4 +1,6 @@
 // Auth pages share this centered, branded layout.
+// Force dynamic rendering — env vars (Supabase URL) are not available at build time.
+export const dynamic = "force-dynamic";
 
 export default function AuthLayout({
   children,
