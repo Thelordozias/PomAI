@@ -21,8 +21,7 @@ function chunkText(text: string): string[] {
   return chunks;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string }>;
+const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string }>; // eslint-disable-line
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const data = await pdfParse(buffer);
