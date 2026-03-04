@@ -259,7 +259,7 @@ export function QuizClient({ courses }: Props) {
                       )}
                       {q.type === "text" && !isSkipped && (
                         <p className="text-sand-400 text-xs">
-                          {t.quiz.yourAnswer} <span className="text-sand-300 italic">"{(ans?.value as string) || "—"}"</span>
+                          {t.quiz.yourAnswer} <span className="text-sand-300 italic">&quot;{(ans?.value as string) || "—"}&quot;</span>
                         </p>
                       )}
                       <p className="text-sand-600 text-xs mt-1.5 italic">{q.explanation}</p>
